@@ -5,13 +5,29 @@ package main
 import (
 	"flag"
 	"fmt"
+    "regexp"
 	"strings"
 	"time"
 
 	"github.com/knz/strtime"
 )
 
+func setup(tbl map[string]*regexp.Regexp) {
+    tbl["%d"] = regexp.MustCompile("[0-3][0-9]")
+    tbl["%m"] = regexp.MustCompile("[0-2][0-9]")
+    tbl["%Y"] = regexp.MustCompile("[1-2][0-9][0-9][0-9]")
+    tbl["%H"] = regexp.MustCompile("[0-2][0-9]")
+    tbl["%M"] = regexp.MustCompile("[0-5][0-9]")
+    tbl["%S"] = regexp.MustCompile("[0-5][0-9]")
+    tbl["%p"] = regexp.MustCompile("(?i)[AP]M")
+
+}
+
 func main() {
+    var formats map[string]*regexp.Regexp
+    formats = make(map[string]*regexp.Regexp)
+    setup(formats)
+
 	argsFormat := flag.String("f", "", "use strftime format, see http://strftime.org/")
 	//argsHours := flag.Int("h", 0, "use a positive number to shift forwards, negactive to shift backwards in time")
 	flag.Parse()
