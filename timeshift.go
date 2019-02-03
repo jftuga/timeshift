@@ -50,18 +50,18 @@ func transform(formats map[string]string, userFormat string) (*regexp.Regexp, Da
         i += 1
 
         switch key {
-        case "%d":
-            day = i
-        case "%m":
-            month = i
-        case "%Y":
-            year = i
-        case "%H":
-            hour = i
-        case "%M":
-            minute = i
-        case "%S":
-            second = i
+            case "%d":
+                day = i
+            case "%m":
+                month = i
+            case "%Y":
+                year = i
+            case "%H":
+                hour = i
+            case "%M":
+                minute = i
+            case "%S":
+                second = i
         }
     }
 
