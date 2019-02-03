@@ -51,17 +51,17 @@ func transform(formats map[string]string, userFormat string) (*regexp.Regexp, Da
 
         switch key {
         case "%d":
-            day = i-1
+            day = i
         case "%m":
-            month = i-1
+            month = i
         case "%Y":
-            year = i-1
+            year = i
         case "%H":
-            hour = i-1
+            hour = i
         case "%M":
-            minute = i-1
+            minute = i
         case "%S":
-            second = i-1
+            second = i
         }
     }
 
