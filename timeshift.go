@@ -12,6 +12,7 @@ import (
 	"github.com/knz/strtime"
 )
 
+/*
 func setup(tbl map[string]*regexp.Regexp) {
     tbl["%d"] = regexp.MustCompile("[0-3][0-9]")
     tbl["%m"] = regexp.MustCompile("[0-2][0-9]")
@@ -22,20 +23,45 @@ func setup(tbl map[string]*regexp.Regexp) {
     tbl["%p"] = regexp.MustCompile("(?i)[AP]M")
 
 }
+*/
+
+func setup(tbl map[string]string) {
+    tbl["%d"] = "[0-3]*?[0-9]"
+    tbl["%m"] = "[0-2]*?[0-9]"
+    tbl["%Y"] = "[1-2][0-9][0-9][0-9]"
+    tbl["%H"] = "[0-2]*?[0-9]"
+    tbl["%M"] = "[0-5][0-9]"
+    tbl["%S"] = "[0-5][0-9]"
+    tbl["%p"] = "(?i)(A|P)M"
+}
+
+func transform(formats map[string]string, userFormat string) *regexp.Regexp {
+    for key, val := range formats {
+        fmt.Printf("%T %s %T %s\n", key, key, val, val)
+        userFormat = strings.Replace(userFormat, key, fmt.Sprintf("(%s)", val), -1)
+    }
+
+    return regexp.MustCompile(userFormat)
+}
 
 func main() {
-    var formats map[string]*regexp.Regexp
-    formats = make(map[string]*regexp.Regexp)
+    //var formats map[string]*regexp.Regexp
+    //formats = make(map[string]*regexp.Regexp)
+    var formats map[string]string
+    formats = make(map[string]string)
     setup(formats)
 
 	argsFormat := flag.String("f", "", "use strftime format, see http://strftime.org/")
-	//argsHours := flag.Int("h", 0, "use a positive number to shift forwards, negactive to shift backwards in time")
+	//argsHours := flag.Int("h", 0, "use a positive number to shift forwards, negative to shift backwards in time")
 	flag.Parse()
 	args := flag.Args()
 
 	datestr := strings.Join(args, " ")
 	fmt.Println()
 	fmt.Printf("input: %s => %s\n", datestr, *argsFormat)
+    datetimeRE := transform(formats, *argsFormat)
+    fmt.Printf("[%s]: %s\n", datestr, datetimeRE.FindString(datestr))
+    return
 
 	var shifted_t time.Time
 	var shifted_s string
