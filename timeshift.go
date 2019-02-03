@@ -32,12 +32,11 @@ func setup(tbl map[string]string) {
     tbl["%H"] = "[0-2]*?[0-9]"
     tbl["%M"] = "[0-5][0-9]"
     tbl["%S"] = "[0-5][0-9]"
-    tbl["%p"] = "(?i)(A|P)M"
+    tbl["%p"] = "(?i)[AP]M"
 }
 
 func transform(formats map[string]string, userFormat string) *regexp.Regexp {
     for key, val := range formats {
-        fmt.Printf("%T %s %T %s\n", key, key, val, val)
         userFormat = strings.Replace(userFormat, key, fmt.Sprintf("(%s)", val), -1)
     }
 
@@ -60,7 +59,12 @@ func main() {
 	fmt.Println()
 	fmt.Printf("input: %s => %s\n", datestr, *argsFormat)
     datetimeRE := transform(formats, *argsFormat)
-    fmt.Printf("[%s]: %s\n", datestr, datetimeRE.FindString(datestr))
+
+    result := datetimeRE.FindStringSubmatch(datestr)
+    fmt.Printf("result [%s]\n", datestr)
+    for i,r := range result {
+        fmt.Printf("\t[%d] %s\n", i,r)
+    }
     return
 
 	var shifted_t time.Time
