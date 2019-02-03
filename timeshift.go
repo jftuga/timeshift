@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
     "regexp"
+    "strconv"
 	"strings"
 	"time"
 
@@ -22,7 +23,7 @@ type DateTimePosition struct {
 }
 
 
-func setup(tbl map[string]string) {
+func setup(tbl map[string]string, userFormat string) DateTimePosition {
     tbl["%d"] = "[0-3]*?[0-9]"
     tbl["%m"] = "[0-2]*?[0-9]"
     tbl["%Y"] = "[1-2][0-9][0-9][0-9]"
@@ -30,43 +31,47 @@ func setup(tbl map[string]string) {
     tbl["%M"] = "[0-5][0-9]"
     tbl["%S"] = "[0-5][0-9]"
     tbl["%p"] = "(?i)[AP]M"
-}
 
-func transform(formats map[string]string, userFormat string) (*regexp.Regexp, DateTimePosition) {
     var year uint32
     var month uint32
     var day uint32
     var hour uint32
     var minute uint32
     var second uint32
-    var previous string
-    var i uint32
-    for key, val := range formats {
-        previous = userFormat
-        userFormat = strings.Replace(userFormat, key, fmt.Sprintf("(%s)", val), -1)
-        if previous == userFormat {
-            continue
-        }
-        i += 1
 
-        switch key {
+    //fmt.Println("userFormat2:", userFormat)
+
+    formatRE := regexp.MustCompile("(%.)")
+    result := formatRE.FindAllStringSubmatch(userFormat, -1)
+    //fmt.Println("result2:", result)
+
+    for i, val := range result {
+        //fmt.Printf("%d %s\n", i, val[0])
+        switch val[0] {
             case "%d":
-                day = i
+                day = uint32(i+1)
             case "%m":
-                month = i
+                month = uint32(i+1)
             case "%Y":
-                year = i
+                year = uint32(i+1)
             case "%H":
-                hour = i
+                hour = uint32(i+1)
             case "%M":
-                minute = i
+                minute = uint32(i+1)
             case "%S":
-                second = i
+                second = uint32(i+1)
         }
     }
+    //fmt.Println("x2:", year, month, day, hour, minute, second)
+    return DateTimePosition{year, month, day, hour, minute, second}
+}
 
-    fmt.Println("position:", year, month, day, hour, minute, second)
-    return regexp.MustCompile(userFormat), DateTimePosition{year, month, day, hour, minute, second}
+func transform(formats map[string]string, userFormat string) *regexp.Regexp  {
+    for key, val := range formats {
+        userFormat = strings.Replace(userFormat, key, fmt.Sprintf("(%s)", val), -1)
+    }
+
+    return regexp.MustCompile(userFormat)
 }
 
 func main() {
@@ -74,7 +79,6 @@ func main() {
     //formats = make(map[string]*regexp.Regexp)
     var formats map[string]string
     formats = make(map[string]string)
-    setup(formats)
 
 	argsFormat := flag.String("f", "", "use strftime format, see http://strftime.org/")
 	//argsHours := flag.Int("h", 0, "use a positive number to shift forwards, negative to shift backwards in time")
@@ -82,15 +86,26 @@ func main() {
 	args := flag.Args()
 
 	datestr := strings.Join(args, " ")
+    dtPos := setup(formats,*argsFormat)
 	fmt.Println()
 	fmt.Printf("input: %s => %s\n", datestr, *argsFormat)
-    datetimeRE, dtPosition := transform(formats, *argsFormat)
+    datetimeRE := transform(formats, *argsFormat)
 
     result := datetimeRE.FindStringSubmatch(datestr)
-    fmt.Printf("result [%s]: %v\n", datestr, dtPosition)
+    fmt.Printf("result [%s]\n", datestr)
     for i,r := range result {
         fmt.Printf("\t[%d] %s\n", i,r)
     }
+    fmt.Println("dtPos:", dtPos)
+    year, _ := strconv.Atoi(result[dtPos.year])
+    month, _ := strconv.Atoi(result[dtPos.month])
+    day, _ := strconv.Atoi(result[dtPos.day])
+    hour, _ := strconv.Atoi(result[dtPos.hour])
+    minute, _ := strconv.Atoi(result[dtPos.minute])
+    second, _ := strconv.Atoi(result[dtPos.second])
+
+    nativeDate := time.Date(year, time.Month(month), day, hour, minute, second, 0, time.Local)
+    fmt.Println("nativeDate:", nativeDate)
     return
 
 	var shifted_t time.Time
