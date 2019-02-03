@@ -12,18 +12,15 @@ import (
 	"github.com/knz/strtime"
 )
 
-/*
-func setup(tbl map[string]*regexp.Regexp) {
-    tbl["%d"] = regexp.MustCompile("[0-3][0-9]")
-    tbl["%m"] = regexp.MustCompile("[0-2][0-9]")
-    tbl["%Y"] = regexp.MustCompile("[1-2][0-9][0-9][0-9]")
-    tbl["%H"] = regexp.MustCompile("[0-2][0-9]")
-    tbl["%M"] = regexp.MustCompile("[0-5][0-9]")
-    tbl["%S"] = regexp.MustCompile("[0-5][0-9]")
-    tbl["%p"] = regexp.MustCompile("(?i)[AP]M")
-
+type DateTimePosition struct {
+    year uint32
+    month uint32
+    day uint32
+    hour uint32
+    minute uint32
+    second uint32
 }
-*/
+
 
 func setup(tbl map[string]string) {
     tbl["%d"] = "[0-3]*?[0-9]"
@@ -35,12 +32,41 @@ func setup(tbl map[string]string) {
     tbl["%p"] = "(?i)[AP]M"
 }
 
-func transform(formats map[string]string, userFormat string) *regexp.Regexp {
+func transform(formats map[string]string, userFormat string) (*regexp.Regexp, DateTimePosition) {
+    var year uint32
+    var month uint32
+    var day uint32
+    var hour uint32
+    var minute uint32
+    var second uint32
+    var previous string
+    var i uint32
     for key, val := range formats {
+        previous = userFormat
         userFormat = strings.Replace(userFormat, key, fmt.Sprintf("(%s)", val), -1)
+        if previous == userFormat {
+            continue
+        }
+        i += 1
+
+        switch key {
+        case "%d":
+            day = i-1
+        case "%m":
+            month = i-1
+        case "%Y":
+            year = i-1
+        case "%H":
+            hour = i-1
+        case "%M":
+            minute = i-1
+        case "%S":
+            second = i-1
+        }
     }
 
-    return regexp.MustCompile(userFormat)
+    fmt.Println("position:", year, month, day, hour, minute, second)
+    return regexp.MustCompile(userFormat), DateTimePosition{year, month, day, hour, minute, second}
 }
 
 func main() {
@@ -58,10 +84,10 @@ func main() {
 	datestr := strings.Join(args, " ")
 	fmt.Println()
 	fmt.Printf("input: %s => %s\n", datestr, *argsFormat)
-    datetimeRE := transform(formats, *argsFormat)
+    datetimeRE, dtPosition := transform(formats, *argsFormat)
 
     result := datetimeRE.FindStringSubmatch(datestr)
-    fmt.Printf("result [%s]\n", datestr)
+    fmt.Printf("result [%s]: %v\n", datestr, dtPosition)
     for i,r := range result {
         fmt.Printf("\t[%d] %s\n", i,r)
     }
