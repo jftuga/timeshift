@@ -5,12 +5,13 @@ package main
 import (
 	"flag"
 	"fmt"
+    "os"
     "regexp"
     "strconv"
 	"strings"
 	"time"
 
-	"github.com/knz/strtime"
+//	"github.com/knz/strtime"
 )
 
 type DateTimePosition struct {
@@ -23,14 +24,38 @@ type DateTimePosition struct {
 }
 
 
-func setup(tbl map[string]string, userFormat string) DateTimePosition {
+func setup(tbl map[string]string, monthShort map[string]int, userFormat string) DateTimePosition {
     tbl["%d"] = "[0-3]*?[0-9]"
     tbl["%m"] = "[0-2]*?[0-9]"
     tbl["%Y"] = "[1-2][0-9][0-9][0-9]"
+    tbl["%y"] = "[0-9][0-9]"
     tbl["%H"] = "[0-2]*?[0-9]"
     tbl["%M"] = "[0-5][0-9]"
     tbl["%S"] = "[0-5][0-9]"
     tbl["%p"] = "(?i)[AP]M"
+    tbl["%z"] = "[-+]?[0-9]{4}"
+    tbl["%f"] = "[0-9]{1,9}"
+    tbl["%a"] = "(?i)(mon|tue|wed|thu|fri|sat|sun)"
+    tbl["%A"] = "(?i)(sunday|monday|tueday|wednesday|thursday|friday|saturday)"
+    tbl["%b"] = "(?i)jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec"
+    tbl["%B"] = "(?i)(january|february|march|april|may|june|july|august|september|october|november|december)"
+    tbl["%T"] = fmt.Sprintf("%s:%s:%s", tbl["%H"], tbl["%M"],tbl["%S"])
+    tbl["%D"] = fmt.Sprintf("%s/%s/%s", tbl["%m"], tbl["%d"],tbl["%y"])
+    tbl["%F"] = fmt.Sprintf("%s-%s-%s", tbl["%Y"], tbl["%m"],tbl["%d"])
+
+    monthShort["jan"] = 1
+    monthShort["feb"] = 2
+    monthShort["mar"] = 3
+    monthShort["apr"] = 4
+    monthShort["may"] = 5
+    monthShort["jun"] = 6
+    monthShort["jul"] = 7
+    monthShort["aug"] = 8
+    monthShort["sep"] = 9
+    monthShort["oct"] = 10
+    monthShort["nov"] = 11
+    monthShort["dec"] = 12
+
 
     var year uint32
     var month uint32
@@ -43,16 +68,17 @@ func setup(tbl map[string]string, userFormat string) DateTimePosition {
 
     formatRE := regexp.MustCompile("(%.)")
     result := formatRE.FindAllStringSubmatch(userFormat, -1)
-    //fmt.Println("result2:", result)
+
+    fmt.Println("result2:", result)
 
     for i, val := range result {
-        //fmt.Printf("%d %s\n", i, val[0])
+        fmt.Printf("%d %s\n", i, val[0])
         switch val[0] {
             case "%d":
                 day = uint32(i+1)
             case "%m":
                 month = uint32(i+1)
-            case "%Y":
+            case "%Y", "%y":
                 year = uint32(i+1)
             case "%H":
                 hour = uint32(i+1)
@@ -62,7 +88,7 @@ func setup(tbl map[string]string, userFormat string) DateTimePosition {
                 second = uint32(i+1)
         }
     }
-    //fmt.Println("x2:", year, month, day, hour, minute, second)
+    fmt.Println("x2:", year, month, day, hour, minute, second)
     return DateTimePosition{year, month, day, hour, minute, second}
 }
 
@@ -80,19 +106,27 @@ func main() {
     var formats map[string]string
     formats = make(map[string]string)
 
-	argsFormat := flag.String("f", "", "use strftime format, see http://strftime.org/")
+    var monthShort map[string]int
+    monthShort = make(map[string]int)
+
+	////argsFormat := flag.String("f", "", "use strftime format, see http://strftime.org/")
 	//argsHours := flag.Int("h", 0, "use a positive number to shift forwards, negative to shift backwards in time")
 	flag.Parse()
-	args := flag.Args()
-
+	////args := flag.Args()
+/*
 	datestr := strings.Join(args, " ")
     dtPos := setup(formats,*argsFormat)
 	fmt.Println()
 	fmt.Printf("input: %s => %s\n", datestr, *argsFormat)
     datetimeRE := transform(formats, *argsFormat)
+    fmt.Println("datetimeRE:", datetimeRE)
 
     result := datetimeRE.FindStringSubmatch(datestr)
-    fmt.Printf("result [%s]\n", datestr)
+    fmt.Printf("result [%s] %s\n", datestr, result)
+    if len(result) == 0 {
+        fmt.Fprintf(os.Stderr, "Failed to converge\n");
+        os.Exit(1)
+    }
     for i,r := range result {
         fmt.Printf("\t[%d] %s\n", i,r)
     }
@@ -104,9 +138,66 @@ func main() {
     minute, _ := strconv.Atoi(result[dtPos.minute])
     second, _ := strconv.Atoi(result[dtPos.second])
 
+    if year <= 68 {
+        year += 2000
+    } else {
+        year += 1900
+    }
     nativeDate := time.Date(year, time.Month(month), day, hour, minute, second, 0, time.Local)
     fmt.Println("nativeDate:", nativeDate)
+*/
+    fmt.Printf("\n--------------------------------------------\n\n")
+	example := "64.242.88.10 - - [07/Mar/2004:16:47:46 -0800] \"GET /twiki/bin/rdiff/Know/ReadmeFirst?rev1=1.5&rev2=1.4 HTTP/1.1\" 200 5724"
+    logFormat := "%d/%b/%Y:%H:%M:%S %z"
+    fmt.Println("logFormat: ", logFormat)
+
+    dtPos := setup(formats,monthShort,logFormat)
+    fmt.Println("dtPos:", dtPos)
+
+    datetimeRE := transform(formats,logFormat)
+    fmt.Println("datetimeRE:", datetimeRE)
+
+    result := datetimeRE.FindStringSubmatch(example)
+    fmt.Printf("result %s\n", result)
+
+    if len(result) == 0 {
+        fmt.Fprintf(os.Stderr, "Failed to converge\n");
+        os.Exit(1)
+    }
+    for i,r := range result {
+        fmt.Printf("\t[%d] %s\n", i,r)
+    }
+
+    year, _ := strconv.Atoi(result[dtPos.year])
+    fmt.Println("yyy:", year)
+    month, err := strconv.Atoi(result[dtPos.month])
+    if err != nil {
+        fmt.Println("err detected!")
+        // do something for named Months, such as Mar, July, etc
+        m := strings.ToLower(result[dtPos.month])
+        fmt.Println("m:",m)
+        month, _ = monthShort[m]  //FIXME
+    }
+    fmt.Println("month:",month)
+    day, _ := strconv.Atoi(result[dtPos.day])
+    hour, _ := strconv.Atoi(result[dtPos.hour])
+    minute, _ := strconv.Atoi(result[dtPos.minute])
+    second, _ := strconv.Atoi(result[dtPos.second])
+
+    if year <= 68 {
+        year += 2000
+    } else {
+        if year < 100 {
+            year += 1900
+        }
+    }
+    nativeDate := time.Date(year, time.Month(month), day, hour, minute, second, 0, time.Local)
+    fmt.Println("nativeDate:", nativeDate)
+
+
     return
+    /*
+    fmt.Printf("\n--------------------------------------------\n\n")
 
 	var shifted_t time.Time
 	var shifted_s string
@@ -127,7 +218,6 @@ func main() {
 	fmt.Println("shifted_t:", shifted_t)
 	fmt.Println("formatted:", shifted_s)
 
-	example := "64.242.88.10 - - [07/Mar/2004:16:47:46 -0800] \"GET /twiki/bin/rdiff/Know/ReadmeFirst?rev1=1.5&rev2=1.4 HTTP/1.1\" 200 5724"
 	fmt.Println()
 	fmt.Println("=================================================================")
 	fmt.Println(example)
@@ -145,4 +235,5 @@ func main() {
 		}
 	}
 	fmt.Println("done")
+*/
 }
