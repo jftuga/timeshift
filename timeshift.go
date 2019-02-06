@@ -21,10 +21,11 @@ type DateTimePosition struct {
     hour uint32
     minute uint32
     second uint32
+    timezone uint32
 }
 
 
-func setup(tbl map[string]string, monthShort map[string]int, userFormat string) DateTimePosition {
+func setup(tbl map[string]string, monthShort map[string]int, monthStrToTime map[string]time.Month, userFormat string) DateTimePosition {
     tbl["%d"] = "[0-3]*?[0-9]"
     tbl["%m"] = "[0-2]*?[0-9]"
     tbl["%Y"] = "[1-2][0-9][0-9][0-9]"
@@ -56,6 +57,31 @@ func setup(tbl map[string]string, monthShort map[string]int, userFormat string) 
     monthShort["nov"] = 11
     monthShort["dec"] = 12
 
+    monthStrToTime["Jan"] = time.January
+    monthStrToTime["Feb"] = time.February
+    monthStrToTime["Mar"] = time.March
+    monthStrToTime["Apr"] = time.April
+    monthStrToTime["May"] = time.May
+    monthStrToTime["Jun"] = time.June
+    monthStrToTime["Jul"] = time.July
+    monthStrToTime["Aug"] = time.August
+    monthStrToTime["Sep"] = time.September
+    monthStrToTime["Oct"] = time.October
+    monthStrToTime["Nov"] = time.November
+    monthStrToTime["Dec"] = time.December
+    monthStrToTime["January"] = time.January
+    monthStrToTime["February"] = time.February
+    monthStrToTime["March"] = time.March
+    monthStrToTime["April"] = time.April
+    monthStrToTime["May"] = time.May
+    monthStrToTime["June"] = time.June
+    monthStrToTime["Julu"] = time.July
+    monthStrToTime["August"] = time.August
+    monthStrToTime["September"] = time.September
+    monthStrToTime["October"] = time.October
+    monthStrToTime["November"] = time.November
+    monthStrToTime["December"] = time.December
+
 
     var year uint32
     var month uint32
@@ -63,6 +89,7 @@ func setup(tbl map[string]string, monthShort map[string]int, userFormat string) 
     var hour uint32
     var minute uint32
     var second uint32
+    var timezone uint32
 
     //fmt.Println("userFormat2:", userFormat)
 
@@ -76,7 +103,7 @@ func setup(tbl map[string]string, monthShort map[string]int, userFormat string) 
         switch val[0] {
             case "%d":
                 day = uint32(i+1)
-            case "%m":
+            case "%m", "%b":
                 month = uint32(i+1)
             case "%Y", "%y":
                 year = uint32(i+1)
@@ -86,10 +113,17 @@ func setup(tbl map[string]string, monthShort map[string]int, userFormat string) 
                 minute = uint32(i+1)
             case "%S":
                 second = uint32(i+1)
+            case "%z":
+                timezone = uint32(i+1)
+            default:
+                fmt.Println("err #2: unknown format string:", val[0])
+                os.Exit(1)
         }
     }
     fmt.Println("x2:", year, month, day, hour, minute, second)
-    return DateTimePosition{year, month, day, hour, minute, second}
+    fmt.Println("------------------------------------")
+    fmt.Println()
+    return DateTimePosition{year, month, day, hour, minute, second, timezone}
 }
 
 func transform(formats map[string]string, userFormat string) *regexp.Regexp  {
@@ -108,6 +142,9 @@ func main() {
 
     var monthShort map[string]int
     monthShort = make(map[string]int)
+
+    var monthStrToTime map[string]time.Month
+    monthStrToTime = make(map[string]time.Month)
 
 	////argsFormat := flag.String("f", "", "use strftime format, see http://strftime.org/")
 	//argsHours := flag.Int("h", 0, "use a positive number to shift forwards, negative to shift backwards in time")
@@ -151,14 +188,15 @@ func main() {
     logFormat := "%d/%b/%Y:%H:%M:%S %z"
     fmt.Println("logFormat: ", logFormat)
 
-    dtPos := setup(formats,monthShort,logFormat)
+    dtPos := setup(formats,monthShort,monthStrToTime,logFormat)
     fmt.Println("dtPos:", dtPos)
 
+    fmt.Printf("\n--------------------------------------------\n\n")
     datetimeRE := transform(formats,logFormat)
     fmt.Println("datetimeRE:", datetimeRE)
 
     result := datetimeRE.FindStringSubmatch(example)
-    fmt.Printf("result %s\n", result)
+    fmt.Printf("result3:%s\n\n", result)
 
     if len(result) == 0 {
         fmt.Fprintf(os.Stderr, "Failed to converge\n");
@@ -167,18 +205,25 @@ func main() {
     for i,r := range result {
         fmt.Printf("\t[%d] %s\n", i,r)
     }
+    fmt.Printf("\n--------------------------------------------\n\n")
+
 
     year, _ := strconv.Atoi(result[dtPos.year])
     fmt.Println("yyy:", year)
     month, err := strconv.Atoi(result[dtPos.month])
+    useNativeMonth := false
+    var monthTime time.Month
     if err != nil {
-        fmt.Println("err detected!")
+        fmt.Println("err #1 detected!")
         // do something for named Months, such as Mar, July, etc
         m := strings.ToLower(result[dtPos.month])
-        fmt.Println("m:",m)
+        fmt.Println("m,res:",m,result[dtPos.month])
         month, _ = monthShort[m]  //FIXME
+        useNativeMonth = true
+        monthTime = monthStrToTime[result[dtPos.month]]
     }
-    fmt.Println("month:",month)
+    fmt.Println("month    :",month)
+    fmt.Println("monthTime:",monthTime)
     day, _ := strconv.Atoi(result[dtPos.day])
     hour, _ := strconv.Atoi(result[dtPos.hour])
     minute, _ := strconv.Atoi(result[dtPos.minute])
@@ -191,7 +236,13 @@ func main() {
             year += 1900
         }
     }
-    nativeDate := time.Date(year, time.Month(month), day, hour, minute, second, 0, time.Local)
+    var nativeDate time.Time
+    loc := time.FixedZone(" ", -8*3600)
+    if useNativeMonth {
+        nativeDate = time.Date(year, monthTime, day, hour, minute, second, 0, loc)
+    } else {
+        nativeDate = time.Date(year, time.Month(month), day, hour, minute, second, 0, loc)
+    }
     fmt.Println("nativeDate:", nativeDate)
 
 
