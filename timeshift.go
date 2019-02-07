@@ -24,13 +24,9 @@ type timeDiff struct {
 
 
 /*
-    originTime, _ := strtime.Strptime(args[0], *argsFormat)
-    shiftedTime := originTime.Add( time.Hour * 24 * time.Duration(*argsDays) +
-        time.Hour * time.Duration(*argsHours) + time.Minute * time.Duration(*argsMinutes) + time.Second * time.Duration(*argsSeconds))
-    formattedShiftedTime, _ := strtime.Strftime(shiftedTime, *argsFormat)
-    fmt.Println(shiftedTime)
-    fmt.Println(formattedShiftedTime)
-
+    apache_access = "%d/%b/%Y:%H:%M:%S"
+    apache_error = "%a %b %d %H:%M:%S.%f"
+    mysql_error = "%Y-%m-%dT%H:%M:%S.%fZ"
 */
 
 func replaceLine(origLine string, startPos int, newTime string) string {
@@ -41,6 +37,9 @@ func scanLine(line string, format string, shifted timeDiff) string {
     //fmt.Println(line)
     var originTime time.Time
     var i int
+    if len(line) <= 2 {
+        return line
+    }
     origLine := line
     if(startPosition > 0) {
         line = line[startPosition:]
@@ -52,6 +51,9 @@ func scanLine(line string, format string, shifted timeDiff) string {
             startPosition = i
             break
         }
+    }
+    if (originTime.String()[0] == 48) { // failed to find a formatted time within the current line
+        return origLine
     }
     //fmt.Println("ot:", originTime)
     shiftedTime := originTime.Add( time.Hour * 24 * time.Duration(shifted.Days) + time.Hour * time.Duration(shifted.Hours) +
