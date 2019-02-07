@@ -4,12 +4,12 @@ package main
 
 import (
     "bufio"
-	"flag"
-	"fmt"
+    "flag"
+    "fmt"
     "os"
     "time"
 
-	"github.com/knz/strtime"
+    "github.com/knz/strtime"
 )
 
 var version string
@@ -74,19 +74,19 @@ func ReadInput(input *bufio.Scanner, format string, shifted timeDiff) {
 
 
 func main() {
-	argsFormat := flag.String("f", "", "use strftime format, see http://strftime.org/")
+    argsFormat := flag.String("f", "", "use strftime format, see http://strftime.org/")
     msg := "use a positive number to shift forwards, negative to shift backwards in time"
-	argsHours := flag.Int("h", 0, fmt.Sprintf("hours, %s", msg))
-	argsMinutes := flag.Int("m", 0, fmt.Sprintf("minutes, %s", msg))
-	argsSeconds := flag.Int("s", 0, fmt.Sprintf("seconds, %s", msg))
+    argsHours := flag.Int("h", 0, fmt.Sprintf("hours, %s", msg))
+    argsMinutes := flag.Int("m", 0, fmt.Sprintf("minutes, %s", msg))
+    argsSeconds := flag.Int("s", 0, fmt.Sprintf("seconds, %s", msg))
     argsDays := flag.Int("d", 0, fmt.Sprintf("days, %s", msg))
     flag.Usage = func() {
         fmt.Fprintf(os.Stderr, "\n%s %s, Shift date/time from log files or from STDIN.\n\n", os.Args[0], version)
         fmt.Fprintf(os.Stderr, "Usage for %s:\n", os.Args[0])
         flag.PrintDefaults()
     }
-	flag.Parse()
-	args := flag.Args()
+    flag.Parse()
+    args := flag.Args()
 
     var input *bufio.Scanner
     if 0 == len(args) { // read from STDIN
