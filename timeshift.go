@@ -7,6 +7,7 @@ import (
     "flag"
     "fmt"
     "os"
+    "strings"
     "time"
 
     "github.com/knz/strtime"
@@ -27,6 +28,7 @@ type timeDiff struct {
     apache_access = "%d/%b/%Y:%H:%M:%S"
     apache_error = "%a %b %d %H:%M:%S.%f"
     mysql_error = "%Y-%m-%dT%H:%M:%S.%fZ"
+    o365_exchange_trace = ""%d/%m/%Y %-I:%M:%S %p"
 */
 
 func replaceLine(origLine string, startPos int, newTime string) string {
@@ -44,9 +46,10 @@ func scanLine(line string, format string, shifted timeDiff) string {
     if(startPosition > 0) {
         line = line[startPosition:]
     }
-    //fmt.Println("line:", line)
+    //fmt.Println("lineTrunc:", line)
     for i,_ = range line {
         originTime,_ = strtime.Strptime(line[i:], format)
+        //fmt.Println("originTime:", originTime)
         if (originTime.String()[0] != 48) { // invalid time of "0001-01-01 00:00:00 +0000 UTC"
             startPosition = i
             break
@@ -61,7 +64,11 @@ func scanLine(line string, format string, shifted timeDiff) string {
     formattedShiftedTime, _ := strtime.Strftime(shiftedTime, format)
     //fmt.Println("fst:", formattedShiftedTime)
 
-    return replaceLine(origLine, i+(len(origLine)-len(line)), formattedShiftedTime)
+    var j int
+    if strings.HasSuffix(strings.ToUpper(formattedShiftedTime), " PM") || strings.HasSuffix(strings.ToUpper(formattedShiftedTime), " AM"){
+        j = -3
+    }
+    return replaceLine(origLine, i+(len(origLine)-len(line))+j, formattedShiftedTime)
 }
 
 func ReadInput(input *bufio.Scanner, format string, shifted timeDiff) {
