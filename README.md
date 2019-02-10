@@ -93,9 +93,9 @@ timeshift -I mysql_error -o "%m/%d/%y %H:%M:%S" -h -5 mysql_error.log
 | `%Y` | Year including the century |
 | `%z` | Time zone offset +/-NNNN | `Strftime` always prints `+0000`
 | `%Z` | `UTC` or `GMT` | `Strftime` always prints `UTC`
-| apache_access       | %d/%b/%Y:%H:%M:%S     |
-| apache_error        | %a %b %d %H:%M:%S.%f  |
-| debian_log          | %b %d %H:%M:%S        |
-| mysql_error         | %Y-%m-%dT%H:%M:%S.%fZ |
-| o365_exchange_trace | %d/%m/%Y %-I:%M:%S %p |
+| apache_access       | %d/%b/%Y:%H:%M:%S     | Used with `-I` and `-O`
+| apache_error        | %a %b %d %H:%M:%S.%f  | Used with `-I` and `-O`
+| debian_log          | %b %d %H:%M:%S        | Used with `-I` and `-O`
+| mysql_error         | %Y-%m-%dT%H:%M:%S.%fZ | Used with `-I` and `-O`
+| o365_exchange_trace | %d/%m/%Y %-I:%M:%S %p | Used with `-I` and `-O`
 
