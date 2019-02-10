@@ -7,7 +7,6 @@ build:
   goos:
     - darwin
     - linux
-    - windows
     - freebsd
   goarch:
     - amd64
@@ -24,9 +23,6 @@ build:
 archive:
   name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ .Arm }}"
   format: tar.gz
-  format_overrides:
-    - goos: windows
-      format: zip
   replacements:
       darwin: macOS
   wrap_in_directory: true
