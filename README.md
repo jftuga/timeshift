@@ -33,7 +33,7 @@ usage: timeshift [options] [filename|or blank for STDIN]
 timeshift -i "%Y-%m-%dT%H:%M:%S.%fZ" -m 5 -s -9 mysql_error.log
 
 # same as above, but use an alias
-# (use -A to see all of the aliases
+# (use -A to see all of the aliases)
 timeshift -I mysql_error -m 5 -s -9 mysql_error.log
 
 # don't shift time, just convert to another format
