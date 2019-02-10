@@ -14,8 +14,7 @@ import (
     "github.com/olekukonko/tablewriter"
 )
 
-const version = "1.0.0"
-var startPosition int
+const version = "1.1.0"
 
 type timeDiff struct {
     Days int
@@ -39,12 +38,13 @@ func ReplaceLine(origLine string, startPos int, newTime string) string {
     return origLine[:startPos] + newTime + origLine[startPos+len(newTime):]
 }
 
-func ScanLine(line string, inputFormat *string, outputFormat *string) string {
+func ScanLine(line string, inputFormat *string, outputFormat *string) (string,int) {
     //fmt.Println(line)
+    startPosition := 0
     var originTime time.Time
-    var i int
+    i:= -1
     if len(line) <= 2 {
-        return line
+        return line, i
     }
     origLine := line
     if(startPosition > 0) {
@@ -60,7 +60,7 @@ func ScanLine(line string, inputFormat *string, outputFormat *string) string {
         }
     }
     if (originTime.String()[0] == 48) { // failed to find a formatted time within the current line
-        return origLine
+        return origLine, -1
     }
     //fmt.Println("ot:", originTime)
     shiftedTime := originTime.Add( time.Hour * 24 * time.Duration(shifted.Days) + time.Hour * time.Duration(shifted.Hours) +
@@ -72,17 +72,34 @@ func ScanLine(line string, inputFormat *string, outputFormat *string) string {
     if strings.HasSuffix(strings.ToUpper(formattedShiftedTime), " PM") || strings.HasSuffix(strings.ToUpper(formattedShiftedTime), " AM"){
         j = -3
     }
-    return ReplaceLine(origLine, i+(len(origLine)-len(line))+j, formattedShiftedTime)
+    currentPos := i+(len(origLine)-len(line))+j
+    return ReplaceLine(origLine, currentPos, formattedShiftedTime), startPosition
 }
 
-func ReadInput(input *bufio.Scanner, inputFormat *string, outputFormat *string) {
+func ReadInput(input *bufio.Scanner, debugOutput bool, inputFormat *string, outputFormat *string) {
     var newLine string
+    var startPos int
+    var allRows [][]string
+
     if(len(*outputFormat) == 0) {
         outputFormat = inputFormat
     }
     for input.Scan() {
-        newLine = ScanLine(input.Text(), inputFormat, outputFormat)
-        fmt.Println(newLine)
+        newLine,startPos = ScanLine(input.Text(), inputFormat, outputFormat)
+        if debugOutput {
+            allRows = append(allRows, []string{fmt.Sprintf("%d",startPos),newLine})
+        } else {
+            fmt.Println(newLine)
+        }
+
+        if debugOutput {
+            table := tablewriter.NewWriter(os.Stderr)
+            table.SetHeader([]string{"Start", "Input"})
+            table.SetAutoWrapText(false)
+            table.AppendBulk(allRows)
+            table.Render()
+        }
+
     }
 }
 
@@ -158,6 +175,7 @@ func main() {
     argsInputAlias := flag.String("I", "", "input alias format, see -A")
     argsOutputAlias := flag.String("O", "", "output alias format, see -A")
     argsVersion := flag.Bool("v", false, "show program version and then exit")
+    argsDebugOutput := flag.Bool("D", false, "debug output")
     msg := "use a positive number to shift forwards, negative to shift backwards in time"
     argsHours := flag.Int("h", 0, fmt.Sprintf("hours, %s", msg))
     argsMinutes := flag.Int("m", 0, fmt.Sprintf("minutes, %s", msg))
@@ -205,7 +223,6 @@ func main() {
         input = bufio.NewScanner(file)
     }
 
-    //shifted = new(timeDiff{*argsDays, *argsHours, *argsMinutes, *argsSeconds})
     shifted = new(timeDiff)
     shifted.Days = *argsDays
     shifted.Hours = *argsHours
@@ -231,6 +248,6 @@ func main() {
             os.Exit(1)
         }
     }
-    ReadInput(input, argsInputFormat, argsOutputFormat)
+    ReadInput(input, *argsDebugOutput, argsInputFormat, argsOutputFormat)
 }
 
