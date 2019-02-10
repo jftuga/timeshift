@@ -217,7 +217,7 @@ func main() {
             alias := aliasList[*argsInputAlias]
             argsInputFormat = &alias
         } else {
-            fmt.Fprintf(os.Stderr,"\nUnknown alias, `%s`. Use -A to see the list of aliases\n\n", *argsInputAlias)
+            fmt.Fprintf(os.Stderr,"\nUnknown input alias, `%s`. Use -A to see the list of aliases\n\n", *argsInputAlias)
             os.Exit(1)
         }
     }
@@ -227,7 +227,7 @@ func main() {
             alias := aliasList[*argsOutputAlias]
             argsOutputFormat = &alias
         } else {
-            fmt.Fprintf(os.Stderr,"\nUnknown alias, `%s`. Use -A to see the list of aliases\n\n", *argsInputAlias)
+            fmt.Fprintf(os.Stderr,"\nUnknown output alias, `%s`. Use -A to see the list of aliases\n\n", *argsOutputAlias)
             os.Exit(1)
         }
     }
