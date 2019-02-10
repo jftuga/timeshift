@@ -32,6 +32,7 @@ func CreateAliases() {
     aliasList["apache_error"] = "%a %b %d %H:%M:%S.%f"
     aliasList["mysql_error"] = "%Y-%m-%dT%H:%M:%S.%fZ"
     aliasList["o365_exchange_trace"] = "%d/%m/%Y %-I:%M:%S %p"
+    aliasList["debian_log"] = "%b %d %H:%M:%S"
 }
 
 func ReplaceLine(origLine string, startPos int, newTime string) string {
