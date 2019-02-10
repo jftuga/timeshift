@@ -6,6 +6,7 @@ timeshift: Shift date/time from log files or from STDIN.
 usage: timeshift [options] [filename|or blank for STDIN]
 
   -A	show all formatting aliases and then exit
+  -D	Output the format's start position
   -F	show all formatting specifiers and then exit
   -I string
     	input alias format, see -A
@@ -49,3 +50,4 @@ timeshift -I mysql_error -o "%m/%d/%y %H:%M:%S" -h -5 mysql_error.log
 * GCC will be needed in order to compile the [strtime](https://github.com/knz/strtime) package.
 * GCC for Windows can be downloaded from here: [tdm-gcc](http://tdm-gcc.tdragon.net/)
 * I used `tdm64-gcc-5.1.0-2.exe` during development.
+* `goreleaser release -f .goreleaser-windows.yml --skip-publish` and then manually upload to releases
