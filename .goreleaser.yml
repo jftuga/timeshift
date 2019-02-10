@@ -1,0 +1,45 @@
+project_name: timeshift
+build:
+  main: timeshift.go
+  binary: timeshift
+  env:
+    - CGO_ENABLED=0
+  goos:
+    - darwin
+    - linux
+    - freebsd
+  goarch:
+    - amd64
+    - arm
+    - mips
+  goarm:
+      - 6
+      - 7
+  ignore:
+    - goos: freebsd
+      goarch: arm
+    - goos: freebsd
+      goarch: mips
+archive:
+  name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ .Arm }}"
+  format: tar.gz
+  replacements:
+      darwin: macOS
+  wrap_in_directory: true
+checksum:
+  name_template: "{{ .ProjectName }}_{{ .Version }}--sha256_checksums.txt"
+release:
+  draft: true
+nfpm:
+  name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ .Arm }}"
+  homepage:  https://github.com/jftuga/timeshift
+  description: timeshift, Shift date/time from log files or from STDIN
+  maintainer: https://reddit.com/u/jftuga
+  license: MIT
+  vendor: jftuga
+  formats:
+  - deb
+  - rpm
+  recommends:
+  - rpm
+
