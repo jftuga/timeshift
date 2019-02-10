@@ -92,16 +92,16 @@ func ReadInput(input *bufio.Scanner, debugOutput bool, inputFormat *string, outp
         } else {
             fmt.Println(newLine)
         }
-
-        if debugOutput {
-            table := tablewriter.NewWriter(os.Stderr)
-            table.SetHeader([]string{"Start", "Input"})
-            table.SetAutoWrapText(false)
-            table.AppendBulk(allRows)
-            table.Render()
-        }
-
     }
+
+    if debugOutput {
+        table := tablewriter.NewWriter(os.Stderr)
+        table.SetHeader([]string{"Start", "Input"})
+        table.SetAutoWrapText(false)
+        table.AppendBulk(allRows)
+        table.Render()
+    }
+
 }
 
 func HelpSpecifiers() {
