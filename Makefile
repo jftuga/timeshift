@@ -6,3 +6,7 @@ $(PROG) : $(PROG).go
 
 clean:
 	rm -f $(PROG) *~ .??*~
+
+distclean: clean
+	rm -rf dist/
+
