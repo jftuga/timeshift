@@ -175,7 +175,7 @@ func main() {
     argsInputAlias := flag.String("I", "", "input alias format, see -A")
     argsOutputAlias := flag.String("O", "", "output alias format, see -A")
     argsVersion := flag.Bool("v", false, "show program version and then exit")
-    argsDebugOutput := flag.Bool("D", false, "debug output")
+    argsDebugOutput := flag.Bool("D", false, "Output the format's start position")
     msg := "use a positive number to shift forwards, negative to shift backwards in time"
     argsHours := flag.Int("h", 0, fmt.Sprintf("hours, %s", msg))
     argsMinutes := flag.Int("m", 0, fmt.Sprintf("minutes, %s", msg))
