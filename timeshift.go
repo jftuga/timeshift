@@ -14,7 +14,7 @@ import (
     "github.com/olekukonko/tablewriter"
 )
 
-const version = "1.1.0"
+const version = "1.1.2"
 
 type timeDiff struct {
     Days int
@@ -24,7 +24,6 @@ type timeDiff struct {
 }
 var shifted *timeDiff
 var aliasList map[string]string
-
 
 func CreateAliases() {
     aliasList = make(map[string]string)
@@ -101,7 +100,6 @@ func ReadInput(input *bufio.Scanner, debugOutput bool, inputFormat *string, outp
         table.AppendBulk(allRows)
         table.Render()
     }
-
 }
 
 func HelpSpecifiers() {
