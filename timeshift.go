@@ -14,7 +14,7 @@ import (
     "github.com/olekukonko/tablewriter"
 )
 
-const version = "1.1.2"
+const version = "1.1.3"
 
 type timeDiff struct {
     Days int
@@ -38,6 +38,16 @@ func ReplaceLine(origLine string, startPos int, newTime string) string {
     return origLine[:startPos] + newTime + origLine[startPos+len(newTime):]
 }
 
+func appendYearFormat(format string) (string, string) {
+	if strings.Contains(format, "%Y") || strings.Contains(format, "%y") {
+		return format, ""
+	}
+
+	// assume the input refers to the current year
+	year, _, _ := time.Now().Date()
+	return "%Y " + format, fmt.Sprintf("%d", year)
+}
+
 func ScanLine(line string, inputFormat *string, outputFormat *string) (string,int) {
     //fmt.Println(line)
     startPosition := 0
@@ -52,7 +62,12 @@ func ScanLine(line string, inputFormat *string, outputFormat *string) (string,in
     }
     //fmt.Println("lineTrunc:", line)
     for i,_ = range line {
-        originTime,_ = strtime.Strptime(line[i:], *inputFormat)
+		inputFormatWithYear, year := appendYearFormat(*inputFormat)
+		if year != "" {
+			originTime, _ = strtime.Strptime(year+" "+line[i:], inputFormatWithYear)
+		} else {
+			originTime, _ = strtime.Strptime(line[i:], inputFormatWithYear)
+		}
         //fmt.Println("originTime:", originTime)
         if (originTime.String()[0] != 48) { // invalid time of "0001-01-01 00:00:00 +0000 UTC"
             startPosition = i
