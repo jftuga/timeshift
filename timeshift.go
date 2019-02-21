@@ -23,7 +23,7 @@ import (
     "github.com/olekukonko/tablewriter"
 )
 
-const version = "1.1.3"
+const version = "1.1.4"
 
 type timeDiff struct {
     Days int
@@ -60,12 +60,17 @@ Returns:
     a string containing the date/time substitution
 */
 
-func ReplaceLine(origLine string, startPos int, newTime string) string {
-    //fmt.Println("origLine:", origLine)
-    //fmt.Println("startPos:", startPos)
-    //fmt.Println("newTime :", newTime)
+func ReplaceLine(origLine string, startPos int, oldTimeLen int, newTime string) string {
+    if false {
+        fmt.Println("------------------------------------")
+        fmt.Println("origLine  :", origLine)
+        fmt.Println("startPos  :", startPos)
+        fmt.Println("oldTimeLen:", oldTimeLen)
+        fmt.Println("newTime   :", newTime)
+    }
 
-    return origLine[:startPos] + newTime + origLine[startPos+len(newTime):]
+    //return origLine[:startPos] + newTime + origLine[startPos+len(newTime):]
+    return origLine[:startPos] + newTime + origLine[startPos+oldTimeLen:]
 }
 
 func appendYearFormat(format string) (string, string) {
@@ -78,47 +83,52 @@ func appendYearFormat(format string) (string, string) {
 	return "%Y " + format, fmt.Sprintf("%d", year)
 }
 
-func ScanLine(line string, inputFormat *string, outputFormat *string) (string,int) {
-    //fmt.Println(line)
+func ScanLine(line string, inputFormat string, outputFormat *string) (string,int) {
+    if len(line) <= 2 {
+        return line, -1
+    }
+
     startPosition := 0
     var originTime time.Time
-    i:= -1
-    if len(line) <= 2 {
-        return line, i
-    }
-    origLine := line
-    if(startPosition > 0) {
-        line = line[startPosition:]
-    }
-    //fmt.Println("lineTrunc:", line)
-    for i,_ = range line {
-		inputFormatWithYear, year := appendYearFormat(*inputFormat)
+
+    inputFormatWithYear, year := appendYearFormat(inputFormat)
+
+    // search for a valid timestamp with in the line and get the timestamp's startPosition
+    for i,_ := range line {
 		if year != "" {
 			originTime, _ = strtime.Strptime(year+" "+line[i:], inputFormatWithYear)
 		} else {
 			originTime, _ = strtime.Strptime(line[i:], inputFormatWithYear)
 		}
-        //fmt.Println("originTime:", originTime)
         if (originTime.String()[0] != 48) { // invalid time of "0001-01-01 00:00:00 +0000 UTC"
             startPosition = i
             break
         }
     }
     if (originTime.String()[0] == 48) { // failed to find a formatted time within the current line
-        return origLine, -1
+        return line, -1
     }
-    //fmt.Println("ot:", originTime)
+
+    // shift the time according to the -d, -h, -m, -s cmd line options
     shiftedTime := originTime.Add( time.Hour * 24 * time.Duration(shifted.Days) + time.Hour * time.Duration(shifted.Hours) +
                     time.Minute * time.Duration(shifted.Minutes) + time.Second * time.Duration(shifted.Seconds))
-    //fmt.Println("st:", shiftedTime)
     formattedShiftedTime, err := strtime.Strftime(shiftedTime, *outputFormat)
     if err != nil {
         fmt.Println("error:", err)
         os.Exit(1)
     }
-    //fmt.Println(" of:", *outputFormat)
-    //fmt.Println("fst:", formattedShiftedTime)
 
+    // get the length of the time in the original format
+    convertedOriginTime, _ := strtime.Strftime(originTime, inputFormat)
+    if false {
+        fmt.Println("originTime          :", originTime)
+        fmt.Println("convertedOriginTime :", convertedOriginTime)
+        fmt.Println("startPosition       :", startPosition)
+        fmt.Println("shiftedTime         :", shiftedTime)
+        fmt.Println("outputFormat        :", *outputFormat)
+        fmt.Println("formattedShiftedTime:", formattedShiftedTime)
+    }
+/*
     var j int
     if strings.HasSuffix(strings.ToUpper(formattedShiftedTime), " PM") || strings.HasSuffix(strings.ToUpper(formattedShiftedTime), " AM"){
         j = -3
@@ -127,7 +137,12 @@ func ScanLine(line string, inputFormat *string, outputFormat *string) (string,in
     if currentPos < 0 {
         currentPos = 0
     }
-    return ReplaceLine(origLine, currentPos, formattedShiftedTime), startPosition
+    return ReplaceLine(origLine, currentPos, len(convertedOriginTime), formattedShiftedTime), startPosition
+*/
+    if line[startPosition] == ' ' {
+        startPosition += 1
+    }
+    return ReplaceLine(line, startPosition, len(convertedOriginTime), formattedShiftedTime), startPosition
 }
 
 func ReadInput(input *bufio.Scanner, debugOutput bool, inputFormat *string, outputFormat *string) {
@@ -139,7 +154,7 @@ func ReadInput(input *bufio.Scanner, debugOutput bool, inputFormat *string, outp
         outputFormat = inputFormat
     }
     for input.Scan() {
-        newLine,startPos = ScanLine(input.Text(), inputFormat, outputFormat)
+        newLine,startPos = ScanLine(input.Text(), *inputFormat, outputFormat)
         if debugOutput {
             allRows = append(allRows, []string{fmt.Sprintf("%d",startPos),newLine})
         } else {
