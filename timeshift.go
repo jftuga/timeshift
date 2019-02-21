@@ -1,4 +1,13 @@
 
+/*
+timeshift.go
+-John Taylor
+Feb 2019
+
+Shift date/time from log files or from STDIN
+https://github.com/jftuga/timeshift
+*/
+
 package main
 
 import (
@@ -25,6 +34,9 @@ type timeDiff struct {
 var shifted *timeDiff
 var aliasList map[string]string
 
+/*
+CreateAliases will build a map between an easy to remember name and a date time format specifier
+*/
 func CreateAliases() {
     aliasList = make(map[string]string)
     aliasList["apache_access"] = "%d/%b/%Y:%H:%M:%S"
@@ -33,6 +45,20 @@ func CreateAliases() {
     aliasList["o365_exchange_trace"] = "%d/%m/%Y %-I:%M:%S %p"
     aliasList["debian_log"] = "%b %d %H:%M:%S"
 }
+
+/*
+ReplaceLine will substitute the date/time from the original format fo the new format
+
+Args:
+    origLine: the input line to examine
+
+    startPos: the character position in the original line to start the replacement
+
+    newTime: the new date/time (using the output format specifier)
+
+Returns:
+    a string containing the date/time substitution
+*/
 
 func ReplaceLine(origLine string, startPos int, newTime string) string {
     return origLine[:startPos] + newTime + origLine[startPos+len(newTime):]
