@@ -42,7 +42,7 @@ func CreateAliases() {
     aliasList["apache_access"] = "%d/%b/%Y:%H:%M:%S"
     aliasList["apache_error"] = "%a %b %d %H:%M:%S.%f"
     aliasList["mysql_error"] = "%Y-%m-%dT%H:%M:%S.%fZ"
-    aliasList["o365_exchange_trace"] = "%d/%m/%Y %-I:%M:%S %p"
+    aliasList["o365_exchange_trace"] = "%d/%m/%Y %I:%M:%S %p"
     aliasList["debian_log"] = "%b %d %H:%M:%S"
 }
 
@@ -61,6 +61,10 @@ Returns:
 */
 
 func ReplaceLine(origLine string, startPos int, newTime string) string {
+    //fmt.Println("origLine:", origLine)
+    //fmt.Println("startPos:", startPos)
+    //fmt.Println("newTime :", newTime)
+
     return origLine[:startPos] + newTime + origLine[startPos+len(newTime):]
 }
 
@@ -106,7 +110,13 @@ func ScanLine(line string, inputFormat *string, outputFormat *string) (string,in
     //fmt.Println("ot:", originTime)
     shiftedTime := originTime.Add( time.Hour * 24 * time.Duration(shifted.Days) + time.Hour * time.Duration(shifted.Hours) +
                     time.Minute * time.Duration(shifted.Minutes) + time.Second * time.Duration(shifted.Seconds))
-    formattedShiftedTime, _ := strtime.Strftime(shiftedTime, *outputFormat)
+    //fmt.Println("st:", shiftedTime)
+    formattedShiftedTime, err := strtime.Strftime(shiftedTime, *outputFormat)
+    if err != nil {
+        fmt.Println("error:", err)
+        os.Exit(1)
+    }
+    //fmt.Println(" of:", *outputFormat)
     //fmt.Println("fst:", formattedShiftedTime)
 
     var j int
@@ -114,6 +124,9 @@ func ScanLine(line string, inputFormat *string, outputFormat *string) (string,in
         j = -3
     }
     currentPos := i+(len(origLine)-len(line))+j
+    if currentPos < 0 {
+        currentPos = 0
+    }
     return ReplaceLine(origLine, currentPos, formattedShiftedTime), startPosition
 }
 
