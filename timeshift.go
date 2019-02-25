@@ -23,7 +23,8 @@ import (
     "github.com/olekukonko/tablewriter"
 )
 
-const version = "1.1.4"
+const version = "1.1.5"
+const dbg = false
 
 type timeDiff struct {
     Days int
@@ -61,7 +62,7 @@ Returns:
 */
 
 func ReplaceLine(origLine string, startPos int, oldTimeLen int, newTime string) string {
-    if false {
+    if dbg  {
         fmt.Println("------------------------------------")
         fmt.Println("origLine  :", origLine)
         fmt.Println("startPos  :", startPos)
@@ -120,7 +121,7 @@ func ScanLine(line string, inputFormat string, outputFormat *string) (string,int
 
     // get the length of the time in the original format
     convertedOriginTime, _ := strtime.Strftime(originTime, inputFormat)
-    if false {
+    if dbg {
         fmt.Println("originTime          :", originTime)
         fmt.Println("convertedOriginTime :", convertedOriginTime)
         fmt.Println("startPosition       :", startPosition)
