@@ -60,7 +60,6 @@ Args:
 Returns:
     a string containing the date/time substitution
 */
-
 func ReplaceLine(origLine string, startPos int, oldTimeLen int, newTime string) string {
     if dbg  {
         fmt.Println("------------------------------------")
@@ -205,6 +204,9 @@ func ReadInput(input *bufio.Scanner, debugOutput bool, inputFormat *string, outp
     }
 }
 
+/*
+HelpSpecifiers is called when the -F cmd line option is given
+*/
 func HelpSpecifiers() {
     var allRows [][]string
     allRows = append(allRows, []string{"%a", "Short week day ('mon', 'tue', etc)", ""} )
@@ -251,6 +253,9 @@ func HelpSpecifiers() {
     table.Render()
 }
 
+/*
+HelpAliases is called when the -A cmd line option is given
+*/
 func HelpAliases() {
     var keys []string
     for k := range aliasList {
