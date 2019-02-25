@@ -74,6 +74,16 @@ func ReplaceLine(origLine string, startPos int, oldTimeLen int, newTime string) 
     return origLine[:startPos] + newTime + origLine[startPos+oldTimeLen:]
 }
 
+/* appendYearFormat will append the current year to the beginning of a date/time
+   when the year is not given in the format.  The current year is assumed
+
+Args:
+    format: a string containing the date/time format specifier
+
+Returns:
+    the same format if it already contains the year; "%Y " prepended otherwise
+    empty string if format contains the year; the current year otherwise
+*/
 func appendYearFormat(format string) (string, string) {
 	if strings.Contains(format, "%Y") || strings.Contains(format, "%y") {
 		return format, ""
@@ -84,6 +94,18 @@ func appendYearFormat(format string) (string, string) {
 	return "%Y " + format, fmt.Sprintf("%d", year)
 }
 
+/* ScanLine will convert a line from its specified input format to the specified output format
+   It also will perform any time conversions
+
+Args:
+    line: one line of input
+
+    inputFormat, outputFormat: a date/time format specifier
+
+Returns:
+    the transformed line including any shifted times
+    -1 if no input format is found, the start position of the input format otherwise
+*/
 func ScanLine(line string, inputFormat string, outputFormat *string) (string,int) {
     if len(line) <= 2 {
         return line, -1
@@ -146,6 +168,17 @@ func ScanLine(line string, inputFormat string, outputFormat *string) (string,int
     return ReplaceLine(line, startPosition, len(convertedOriginTime), formattedShiftedTime), startPosition
 }
 
+/*
+ReadInput calls ScanLine() for each line of input and optionally displays debugging info
+
+Args:
+
+    input: a pointer to either an open file or to STDIN
+
+    debugOutput: when true, display a table including start position and the line
+
+    inputFormat, outputFormat: a date/time specifer
+*/
 func ReadInput(input *bufio.Scanner, debugOutput bool, inputFormat *string, outputFormat *string) {
     var newLine string
     var startPos int
