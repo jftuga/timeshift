@@ -19,11 +19,11 @@ import (
     "strings"
     "time"
 
-    "github.com/knz/strtime"
+    "github.com/jftuga/strtime"
     "github.com/olekukonko/tablewriter"
 )
 
-const version = "1.1.5"
+const version = "1.2.0"
 const dbg = false
 
 type timeDiff struct {
@@ -219,6 +219,7 @@ func HelpSpecifiers() {
     allRows = append(allRows, []string{"%D", "Equivalent to `%m/%d/%y`", ""} )
     allRows = append(allRows, []string{"%e", "Like `%d` but leading zeros are replaced by a space.", ""} )
     allRows = append(allRows, []string{"%f", "Fractional part of a second with nanosecond precision, e.g. '`123`' is 123ms; '`123456`' is 123456µs, etc.", "`Strftime` always formats using 9 digits. This can be buggy and is not recommended for use with `timeshift`."} )
+    allRows = append(allRows, []string{"%1, %2, ..., %8", "Similar to `%f`.", "Use `%1` for one decimal of precision, `%2` for two decimals, etc."} )
     allRows = append(allRows, []string{"%F", "Equivalent to `%Y-%m-%d`", ""} )
     allRows = append(allRows, []string{"%h", "Equivalent to `%b`", ""} )
     allRows = append(allRows, []string{"%H", "Hours 00-23", "See also `%k`"} )
